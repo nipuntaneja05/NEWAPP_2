@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Button, Alert, Modal, TouchableOpacity } from 'react-native';
-import {jwtDecode} from 'jwt-decode'; // Correct import for jwt-decode
+import { jwtDecode } from 'jwt-decode'; // Correct import for jwt-decode
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Define the custom type for the decoded token
@@ -10,7 +10,6 @@ interface DecodedToken {
     name: string;
     email: string;
   };
-  exp?: number; // Optional since it may be undefined
 }
 
 const Login = () => {
@@ -20,7 +19,6 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleSubmit = async () => {
     // Form validation
@@ -46,7 +44,7 @@ const Login = () => {
       const result = await response.json();
       if (response.ok) {
         Alert.alert(`${formType} successful!`);
-        // Handle successful login/sign-up
+
         if (formType === 'Login') {
           await AsyncStorage.setItem('token', result.token);
           const decodedToken = jwtDecode<DecodedToken>(result.token);
@@ -56,9 +54,14 @@ const Login = () => {
           await AsyncStorage.setItem('name', decodedToken.user.name);
           await AsyncStorage.setItem('email', decodedToken.user.email);
 
-          setIsAuthenticated(true);
-          console.log('User logged in and userId saved:', decodedToken.user.id);
-          // Navigate to homepage or perform further actions
+          console.log('Stored in AsyncStorage:', {
+            token: result.token,
+            userId: decodedToken.user.id,
+            name: decodedToken.user.name,
+            email: decodedToken.user.email,
+          });
+
+          Alert.alert('Login details saved locally!');
         }
 
         // Reset input fields
@@ -80,34 +83,6 @@ const Login = () => {
     setFormType(type);
     setModalVisible(false);
   };
-
-  useEffect(() => {
-    const checkToken = async () => {
-      const token = await AsyncStorage.getItem('token'); // Await the promise
-      if (token) {
-        try {
-          const decodedToken = jwtDecode<DecodedToken>(token); // Use the custom type
-          const currentTime = Date.now() / 1000;
-
-          // Check if exp is defined
-          if (decodedToken.exp && decodedToken.exp > currentTime) {
-            setIsAuthenticated(true);
-            console.log('User authenticated with userId:', decodedToken.user.id);
-            // Navigate to homepage or perform further actions
-          } else {
-            // Handle token expiration (e.g., clear token)
-            console.log('Token expired, clearing from storage.');
-            await AsyncStorage.removeItem('token');
-          }
-        } catch (error) {
-          console.error('Token decoding error:', error);
-          await AsyncStorage.removeItem('token');
-        }
-      }
-    };
-
-    checkToken(); // Call the function to check the token
-  }, []);
 
   return (
     <View style={styles.container}>
