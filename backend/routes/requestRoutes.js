@@ -6,7 +6,7 @@ const Request = require('../models/Request'); // Import the Request model
  // Import the token verification middleware
 
 // Route to create a new request
-// router.post('/', verifyToken, createRequest); // Use verifyToken middleware to check user authorization
+router.post('/',  createRequest); // Use verifyToken middleware to check user authorization
 
 router.get('/get', getRequests);
 

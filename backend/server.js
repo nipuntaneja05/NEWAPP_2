@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 const cors = require('cors'); // For handling CORS
 const requestRoutes = require('./routes/requestRoutes'); // Import the request routes
 
-
 const app = express();
 const PORT = 5000;
 

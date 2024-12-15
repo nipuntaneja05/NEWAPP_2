@@ -27,39 +27,51 @@ const RequestTemplate = () => {
       return;
     }
   
-    const requestData = {
-      title: title.trim(),
-      description: description.trim(),
-      category: category.trim(),
-      radius,
-      waitTime,
-      region, // Includes latitude, longitude, latitudeDelta, and longitudeDelta
-    };
-  
     try {
-      const token = await AsyncStorage.getItem('jwt_token'); // Replace this with your method of fetching the token (e.g., AsyncStorage or Redux)
-      
-      const response = await fetch('http://10.0.2.2:5000/api/requests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Send the JWT token in the Authorization header
-        },
-        body: JSON.stringify(requestData),
-      });
+      // Fetch email and userId from AsyncStorage
+      const email = await AsyncStorage.getItem('email'); // Replace 'email' with the actual key where email is stored
+      const userId = await AsyncStorage.getItem('userId'); // Replace 'userId' with the actual key where userId is stored
   
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Request saved:', data);
-        setIsPreferencesView(true); // Switch to Preferences view
+      if (email && userId) {
+        const requestData = {
+          title: title.trim(),
+          description: description.trim(),
+          category: category.trim(),
+          radius,
+          waitTime,
+          region,
+          email, // Add email to the requestData
+          userId, // Add userId to the requestData
+        };
+  
+        // Fetch JWT token
+        const token = await AsyncStorage.getItem('jwt_token'); // Replace with your method of fetching token
+  
+        const response = await fetch('http://10.0.2.2:5000/api/requests', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`, // Send the JWT token in the Authorization header
+          },
+          body: JSON.stringify(requestData),
+        });
+  
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Request saved:', data);
+          setIsPreferencesView(true); // Switch to Preferences view
+        } else {
+          Alert.alert('Error', 'Failed to save request');
+        }
       } else {
-        Alert.alert('Error', 'Failed to save request');
+        Alert.alert('Error', 'User email or user ID not found');
       }
     } catch (error) {
       console.error('Error saving request:', error);
       Alert.alert('Error', 'An error occurred while saving the request');
     }
   };
+  
   
   const handleBackPress = () => {
     if (isPreferencesView) {

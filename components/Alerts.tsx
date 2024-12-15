@@ -18,25 +18,25 @@ interface RequestAlert {
     longitudeDelta: number;
   };
   createdAt: string;
-  userId: string; // Assuming requests have a 'userId' field
+  email: string; // Request's email
 }
 
 const Alerts = () => {
   const [alerts, setAlerts] = useState<RequestAlert[]>([]);
-  const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
+  const [loggedInUserEmail, setLoggedInUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchLoggedInUserId = async () => {
+    const fetchLoggedInUserEmail = async () => {
       try {
-        const userId = await AsyncStorage.getItem('userId');
-        console.log('Logged in user ID:', userId);
-        if (userId) {
-          setLoggedInUserId(userId);
+        const email = await AsyncStorage.getItem('email'); // Use the correct key for the email
+        console.log('Logged in user email:', email);
+        if (email) {
+          setLoggedInUserEmail(email);
         } else {
-          console.log('No userId found');
+          console.log('No email found in AsyncStorage');
         }
       } catch (error) {
-        console.error('Error fetching logged-in user ID:', error);
+        console.error('Error fetching logged-in user email:', error);
       }
     };
 
@@ -50,7 +50,7 @@ const Alerts = () => {
       }
     };
 
-    fetchLoggedInUserId();
+    fetchLoggedInUserEmail();
     fetchAlerts();
   }, []);
 
@@ -113,7 +113,7 @@ const Alerts = () => {
             </Text>
 
             {/* Buttons: Apply or Delete */}
-            {alert.userId === loggedInUserId ? (
+            {alert.email === loggedInUserEmail ? (
               // Show 'Delete' button for user's own request
               <TouchableOpacity
                 style={[styles.button, styles.deleteButton]}

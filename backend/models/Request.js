@@ -14,7 +14,9 @@ const requestSchema = new mongoose.Schema({
     longitudeDelta: { type: Number, required: true },
   },
   createdAt: { type: Date, default: Date.now },
-  userId: { type: String, required: true }, // Added userId field
+  userId: { type: String, required: true },
+  email: { type: String, required: true },
+
 });
 
 // Create the model
