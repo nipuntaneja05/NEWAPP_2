@@ -57,10 +57,17 @@ const Alerts = () => {
   // Function to delete the user's request
   const deleteRequest = async (requestId: string) => {
     try {
-      const response = await fetch(`http://10.0.2.2:5000/api/requests/delete/${requestId}`, {
+      const response = await fetch(`http://10.0.2.2:5000/api/requests/${requestId}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: loggedInUserEmail }),
       });
-
+  
+      const text = await response.text(); // Log the raw response as text
+      console.log('Server Response:', text);
+  
       if (response.ok) {
         setAlerts(alerts.filter((alert) => alert._id !== requestId));
         RNAlert.alert('Success', 'Request deleted successfully');
@@ -69,8 +76,10 @@ const Alerts = () => {
       }
     } catch (error) {
       RNAlert.alert('Error', 'Failed to delete the request');
+      console.error('Error deleting request:', error);
     }
   };
+  
 
   // Function to apply for a request
   const applyRequest = async (requestId: string) => {
