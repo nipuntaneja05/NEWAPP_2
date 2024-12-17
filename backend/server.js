@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors'); // For handling CORS
 const requestRoutes = require('./routes/requestRoutes'); // Import the request routes
+const appliersRoutes = require('./routes/appliers');
 
 const app = express();
 const PORT = 5000;
@@ -20,6 +21,8 @@ mongoose.connect('mongodb://localhost:27017/requestsDB', {
 
 // Use the request routes for API endpoints
 app.use('/api/requests', requestRoutes);
+
+app.use('/api/requests', appliersRoutes); // Use the route for applying
 
 // Start the server
 app.listen(PORT, () => {

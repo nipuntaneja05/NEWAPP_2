@@ -2,11 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { createRequest, getRequests } = require('../controllers/requestController');
 const Request = require('../models/Request'); // Import the Request model
-// const verifyToken = require('../middleware/verifytoken');
- // Import the token verification middleware
 
 // Route to create a new request
-router.post('/',  createRequest); // Use verifyToken middleware to check user authorization
+router.post('/',  createRequest); 
 
 router.get('/get', getRequests);
 router.delete('/:id', async (req, res) => {

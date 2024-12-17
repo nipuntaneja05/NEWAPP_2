@@ -24,11 +24,12 @@ interface RequestAlert {
 const Alerts = () => {
   const [alerts, setAlerts] = useState<RequestAlert[]>([]);
   const [loggedInUserEmail, setLoggedInUserEmail] = useState<string | null>(null);
+  const [appliedRequests, setAppliedRequests] = useState<Set<string>>(new Set()); // Track applied requests
 
   useEffect(() => {
     const fetchLoggedInUserEmail = async () => {
       try {
-        const email = await AsyncStorage.getItem('email'); // Use the correct key for the email
+        const email = await AsyncStorage.getItem('email');
         console.log('Logged in user email:', email);
         if (email) {
           setLoggedInUserEmail(email);
@@ -65,7 +66,7 @@ const Alerts = () => {
         body: JSON.stringify({ email: loggedInUserEmail }),
       });
   
-      const text = await response.text(); // Log the raw response as text
+      const text = await response.text();
       console.log('Server Response:', text);
   
       if (response.ok) {
@@ -79,22 +80,36 @@ const Alerts = () => {
       console.error('Error deleting request:', error);
     }
   };
-  
 
   // Function to apply for a request
   const applyRequest = async (requestId: string) => {
     try {
-      const response = await fetch(`http://10.0.2.2:5000/api/requests/${requestId}`, {
+      if (!loggedInUserEmail) {
+        RNAlert.alert('Error', 'You must be logged in to apply for requests');
+        return;
+      }
+
+      // API call to backend
+      const response = await fetch(`http://10.0.2.2:5000/api/requests/apply/${requestId}`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: loggedInUserEmail }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        RNAlert.alert('Success', 'You have successfully applied for this request');
+        // Add the applied request to the set
+        setAppliedRequests((prev) => new Set(prev).add(requestId));
+        RNAlert.alert('Success', data.message || 'Successfully applied for the request.');
       } else {
-        RNAlert.alert('Error', 'Failed to apply for the request');
+        RNAlert.alert('Error', data.message || 'Failed to apply for the request.');
       }
     } catch (error) {
-      RNAlert.alert('Error', 'Failed to apply for the request');
+      RNAlert.alert('Error', 'An unexpected error occurred while applying for the request.');
+      console.error('Error applying for request:', error);
     }
   };
 
@@ -121,7 +136,7 @@ const Alerts = () => {
               Created At: {new Date(alert.createdAt).toLocaleString()}
             </Text>
 
-            {/* Buttons: Apply or Delete */}
+            {/* Buttons: Apply, Chat or Delete */}
             {alert.email === loggedInUserEmail ? (
               // Show 'Delete' button for user's own request
               <TouchableOpacity
@@ -129,6 +144,17 @@ const Alerts = () => {
                 onPress={() => deleteRequest(alert._id)}
               >
                 <Text style={styles.buttonText}>Delete</Text>
+              </TouchableOpacity>
+            ) : appliedRequests.has(alert._id) ? (
+              // Show 'Chat' button after successful application
+              <TouchableOpacity
+                style={[styles.button, styles.applyButton]}
+                onPress={() => {
+                  // Navigate to Chat screen (you can implement chat functionality here)
+                  RNAlert.alert('Chat', 'Navigate to chat screen');
+                }}
+              >
+                <Text style={styles.buttonText}>Chat</Text>
               </TouchableOpacity>
             ) : (
               // Show 'Apply' button for others' requests
