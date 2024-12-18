@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert as RNAlert } from 'react-native'; // Renaming Alert to RNAlert
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert as RNAlert,
+} from 'react-native'; // Renaming Alert to RNAlert
 import LinearGradient from 'react-native-linear-gradient';
 import Navbar from './Navbar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RootStackParamList } from '../App'; // Import RootStackParamList
+
+// Define navigation type
+type NavigationProps = StackNavigationProp<RootStackParamList, 'Alerts'>;
 
 interface RequestAlert {
   _id: string;
@@ -22,9 +35,10 @@ interface RequestAlert {
 }
 
 const Alerts = () => {
+  const navigation = useNavigation<NavigationProps>();
   const [alerts, setAlerts] = useState<RequestAlert[]>([]);
   const [loggedInUserEmail, setLoggedInUserEmail] = useState<string | null>(null);
-  const [appliedRequests, setAppliedRequests] = useState<Set<string>>(new Set()); // Track applied requests
+  const [appliedRequests, setAppliedRequests] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchLoggedInUserEmail = async () => {
@@ -60,15 +74,10 @@ const Alerts = () => {
     try {
       const response = await fetch(`http://10.0.2.2:5000/api/requests/${requestId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loggedInUserEmail }),
       });
-  
-      const text = await response.text();
-      console.log('Server Response:', text);
-  
+
       if (response.ok) {
         setAlerts(alerts.filter((alert) => alert._id !== requestId));
         RNAlert.alert('Success', 'Request deleted successfully');
@@ -89,19 +98,14 @@ const Alerts = () => {
         return;
       }
 
-      // API call to backend
       const response = await fetch(`http://10.0.2.2:5000/api/requests/apply/${requestId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loggedInUserEmail }),
       });
 
       const data = await response.json();
-
       if (response.ok) {
-        // Add the applied request to the set
         setAppliedRequests((prev) => new Set(prev).add(requestId));
         RNAlert.alert('Success', data.message || 'Successfully applied for the request.');
       } else {
@@ -111,6 +115,11 @@ const Alerts = () => {
       RNAlert.alert('Error', 'An unexpected error occurred while applying for the request.');
       console.error('Error applying for request:', error);
     }
+  };
+
+  // Function to navigate to 'ViewApplicants' and pass the requestId
+  const viewApplicants = (requestId: string) => {
+    navigation.navigate('ViewApplicants', { requestId }); // Pass the requestId to ViewApplicants screen
   };
 
   return (
@@ -136,28 +145,30 @@ const Alerts = () => {
               Created At: {new Date(alert.createdAt).toLocaleString()}
             </Text>
 
-            {/* Buttons: Apply, Chat or Delete */}
+            {/* Buttons */}
             {alert.email === loggedInUserEmail ? (
-              // Show 'Delete' button for user's own request
-              <TouchableOpacity
-                style={[styles.button, styles.deleteButton]}
-                onPress={() => deleteRequest(alert._id)}
-              >
-                <Text style={styles.buttonText}>Delete</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  style={[styles.button, styles.viewButton]}
+                  onPress={() => viewApplicants(alert._id)} // Pass requestId
+                >
+                  <Text style={styles.buttonText}>View Applicants</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.button, styles.deleteButton]}
+                  onPress={() => deleteRequest(alert._id)}
+                >
+                  <Text style={styles.buttonText}>Delete</Text>
+                </TouchableOpacity>
+              </>
             ) : appliedRequests.has(alert._id) ? (
-              // Show 'Chat' button after successful application
               <TouchableOpacity
                 style={[styles.button, styles.applyButton]}
-                onPress={() => {
-                  // Navigate to Chat screen (you can implement chat functionality here)
-                  RNAlert.alert('Chat', 'Navigate to chat screen');
-                }}
+                onPress={() => RNAlert.alert('Chat', 'Navigate to chat screen')}
               >
                 <Text style={styles.buttonText}>Chat</Text>
               </TouchableOpacity>
             ) : (
-              // Show 'Apply' button for others' requests
               <TouchableOpacity
                 style={[styles.button, styles.applyButton]}
                 onPress={() => applyRequest(alert._id)}
@@ -177,62 +188,61 @@ const Alerts = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f1f8',
-    paddingTop: 50,
+    backgroundColor: '#fff',
   },
   header: {
-    width: '100%',
-    paddingVertical: 15,
-    alignItems: 'center',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    padding: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   headerText: {
     fontSize: 24,
-    color: '#fff',
     fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
   },
   scrollView: {
-    flex: 1,
-    width: '100%',
-    paddingHorizontal: 10,
+    padding: 10,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#f9f9f9',
+    padding: 20,
+    marginBottom: 10,
     borderRadius: 10,
-    padding: 15,
-    marginVertical: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-    elevation: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 10,
   },
   cardText: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 3,
+    fontSize: 14,
+    marginBottom: 5,
   },
   button: {
-    padding: 10,
+    paddingVertical: 10,
     borderRadius: 5,
-    marginTop: 10,
     alignItems: 'center',
-  },
-  applyButton: {
-    backgroundColor: '#4caf50',
-  },
-  deleteButton: {
-    backgroundColor: '#ff7d5a',
+    marginVertical: 5,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  viewButton: {
+    backgroundColor: '#ff7d5a',
+  },
+  deleteButton: {
+    backgroundColor: '#ff4d4d',
+  },
+  applyButton: {
+    backgroundColor: '#7ed957',
   },
 });
 

@@ -11,6 +11,7 @@ import RequestTemplate from './components/RequestTemplate';
 import CabTemplate from './components/CabTemplate';
 import Login from './components/Login';
 import Emailpopup from './components/Emailpopup'; // Correct import for Emailpopup
+import ViewApplicants from './components/ViewApplicants';
 
 // Define the RootStackParamList with correct navigation params
 export type RootStackParamList = {
@@ -23,7 +24,8 @@ export type RootStackParamList = {
   RequestTemplate: undefined;
   CabTemplate: undefined;
   Login: undefined;
-  Emailpopup: undefined; // Correct the type for Emailpopup
+  Emailpopup: undefined;
+  ViewApplicants: { requestId: string }; 
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -82,6 +84,11 @@ const App = () => {
           component={Emailpopup} // Correct component name for Emailpopup
           options={{ headerShown: true, title: 'Email Verification' }}
         />
+        <Stack.Screen
+  name="ViewApplicants"
+  component={ViewApplicants}
+  options={{ headerShown: true, title: 'View Applicants' }}
+/>
       </Stack.Navigator>
     </NavigationContainer>
   );
